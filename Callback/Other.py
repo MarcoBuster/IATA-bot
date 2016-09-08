@@ -28,6 +28,7 @@ def process(bot, chains, update):
                 '[{"text":"ℹ️Link utili", "callback_data":"links"}]'+
             ']}'
         })
+        API.db.updateState(chat.id, "home", 0)
 
     if query == "links":
         text = "Ecco dei <b>link utili</b> di <b>IATA</b>"
