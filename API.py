@@ -26,6 +26,10 @@ class db:
             c.execute('''CREATE TABLE submit(chat_id INTEGER, name TEXT, link TEXT, admins TEXT, description TEXT)''')
         except sqlite3.OperationalError as e:
             pass
+        try:
+            c.execute('''CREATE TABLE ban(user_id INTEGER, reason TEXT)''')
+        except sqlite3.OperationalError as e:
+            pass
         conn.commit()
 
     def updateState(chat_id, new_state, temp):

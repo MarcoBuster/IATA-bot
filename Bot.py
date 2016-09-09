@@ -12,7 +12,7 @@ IT: Bot sviluppato da @MarcoBuster (www.GitHub.com/MarcoBuster)
 =====================
 '''
 
-from Callback import Report, Submit, Other
+from Callback import Report, Submit, Other, Contact
 import API
 
 import botogram.objects.base
@@ -40,6 +40,17 @@ c = conn.cursor()
 API.db.createTables()
 conn.commit()
 
+@bot.before_processing
+def ban_system(chat, message):
+    c.execute('''SELECT * FROM ban WHERE user_id=?''',(message.sender.id,))
+    found = c.fetchall()
+    conn.commit()
+    if found:
+        message.reply("<b>ATTENZIONE! Sei bannato dall\'utilizzo di questo bot!</b>")
+        return True
+    if not found:
+        return False
+
 @bot.command("start")
 def start(chat, message, args):
     '''Hello, world!'''
@@ -50,6 +61,7 @@ def start(chat, message, args):
     bot.api.call("sendMessage",{
         "chat_id":chat.id, "text":text, "parse_mode":"HTML", "reply_markup":
             '{"inline_keyboard":[[{"text":"🔒Segnala utente", "callback_data":"report"}, {"text":"📝Sottoscrivi gruppo", "callback_data":"submit"}],'+
+            '[{"text":"📞Contatta IATA", "callback_data":"contact"}],'
             '[{"text":"ℹ️Link utili", "callback_data":"links"}]'+
         ']}'
     })
@@ -61,6 +73,7 @@ def process_callback(bot, chains, update):
     '''Process callback'''
     Report.process(bot, chains, update)
     Submit.process(bot, chains, update)
+    Contact.process(bot, chains, update)
     Other.process(bot, chains, update)
 bot.register_update_processor("callback_query", process_callback)
 
@@ -122,7 +135,7 @@ def report2(chat, message):
     if message.photo == None:
         reported_evidence = message.text
         bot.chat(26170256).send(
-                                "<b>NUOVA SEGNALAZIONE</b> (#report)\n"
+                                "#REPORT<b> UTENTE</b>\n"
                                 "<b>Info sul reportato</b>: {0}\n"
                                 "<b>Prove</b>: {1}\n"
                                 "<b>SEGNALATO DA</b>:\n"
@@ -285,7 +298,7 @@ def submit4(chat, message):
         admins = res[3]
         description = res[4]
 
-    bot.chat(26170256).send("<b>Un gruppo vuole entrare in IATA!</b>"
+    bot.chat(26170256).send("<b>RICHIESTA D\'</b>#ISCRIZIONE"
                             "\n\n<b>INFORMAZIONI SUL GRUPPO</b>"
                             "\n<b>Nome del gruppo</b>: {0}"
                             "\n<b>Link del gruppo</b>: {1}"
@@ -308,8 +321,166 @@ def submit4(chat, message):
     }
     )
 
-    API.db.updateState(chat.id, "submit4", 0)
+    API.db.updateState(chat.id, "nullstate", 0)
     conn.commit()
+
+@bot.process_message
+def contact1(chat, message):
+    '''Submit a suggestion'''
+    state, temp = API.db.getState(chat.id)
+    conn.commit()
+    if state != "contact1":
+        return
+
+    if message.text == None:
+        message.reply("<b>Attenzione!</b>\nIl messaggio inviato <b>non contiene testo</b>, per favore <b>invia del testo</b> da inviare a <b>IATA</b>")
+        return
+
+    text = str(message.text)
+
+    bot.chat(26170256).send("#MESSAGGIO<b> IN ARRIVO</b>"
+                            "\n<b>Nome</b>: {0}"
+                            "\n<b>Username</b>: {1}"
+                            "\n<b>ID</b>: #id{2}"
+                            "\n<b>Testo</b>: {3}"
+                            "\n\n<i>Se il messaggio è offensivo lo puoi bannare facendo /ban {2}</i>"
+                            "\n<i>Puoi rispondere a questo messaggio facendo /r {2} RISPOSTA</i>".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
+                            , syntax="HTML"
+
+    )
+
+    chat.send("Grazie! A breve un <b>admin IATA</b> ti risponderà")
+
+    API.db.updateState(chat.id, "nullstate", 0)
+    conn.commit()
+
+@bot.command("ban")
+def ban(chat, message, args):
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    if message.sender.id not in IATA_admins:
+        message.reply("<b>Non puoi bannare gente dal bot, non hai i permessi.</b>"
+                    "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
+                    )
+        return
+
+    if len(args) == 0:
+        message.reply(
+                    "\nPer <b>bannare</b> utenti dal bot devi sapere il loro <b>id utente</b>, poi fare: <code>/ban IDUTENTE</code>."
+                    "\nEsempio: <code>/ban 12345678 MOTIVO</code>"
+                    )
+        return
+
+    user_id = args[0]
+    if len(args) > 1:
+        motivazione = ' '.join(args[1:])
+    else:
+        motivazione = "Nessuna motivazione specificata"
+
+    try:
+        int(user_id)
+    except ValueError:
+        message.reply("L\'<b>ID utente</b> specificato ({0}) non è valido".format(str(user_id)))
+        return
+
+    c.execute('''DELETE FROM ban WHERE user_id=?''', (user_id,))
+    c.execute('''INSERT INTO ban VALUES(?, ?)''', (user_id, motivazione))
+    conn.commit()
+
+    try:
+        bot.chat(user_id).send("Sei stato <b>bannato</b> da questo bot da un <b>admin IATA</b>\n"
+        "<b>ATTENZIONE!</b> Questo non significa che sei stato messo in <a href=\"telegram.me/IATABlacklist\">Blacklist</a>, ma solo che non potrai più usare questo bot\n"
+        "<b>Motivo</b>: {0}".format(motivazione)
+        , preview=False
+        )
+    except Exception as e:
+        pass
+
+    message.reply("Utente {0} aggiunto nei database <b>bannati</b> con motivazione {1}"
+                "\nSe hai sbagliato puoi sbannarlo facendo <code>/unban {0}</code>".format(str(user_id), motivazione)
+            )
+
+@bot.command("unban")
+def unban(chat, message, args):
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    if message.sender.id not in IATA_admins:
+        message.reply("<b>Non puoi sbannare gente dal bot, non hai i permessi.</b>"
+                    "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
+                    )
+        return
+
+    if len(args) == 0:
+        message.reply(
+                    "\nPer <b>sbannare</b> utenti dal bot devi sapere il loro <b>id utente</b>, poi fare: <code>/ban IDUTENTE</code>."
+                    "\nEsempio: <code>/unban 12345678 MOTIVO</code>"
+                    )
+        return
+
+    user_id = args[0]
+    if len(args) > 1:
+        motivazione = ' '.join(args[1:])
+    else:
+        motivazione = "Nessuna motivazione specificata"
+
+    try:
+        int(user_id)
+    except ValueError:
+        message.reply("L\'<b>ID utente</b> specificato ({0}) non è valido".format(str(user_id)))
+        return
+
+    c.execute('''DELETE FROM ban WHERE user_id=?''', (user_id,))
+    conn.commit()
+
+    try:
+        bot.chat(user_id).send("Sei stato <b>sbannato</b> da questo bot da un <b>admin IATA</b>\n"
+        "<b>Motivo</b>: {0}".format(motivazione)
+        )
+    except Exception as e:
+        pass
+
+    message.reply("Utente {0} rimosso nei database <b>bannati</b> con motivazione {1}"
+                "\nSe hai sbagliato puoi ri-bannarlo facendo <code>/ban {0}</code>".format(str(user_id), motivazione)
+            )
+
+@bot.command("admin")
+def admin(chat, message):
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    if message.sender.id not in IATA_admins:
+        message.reply("<b>Non puoi accedere a questo comando del bot, non hai i permessi.</b>"
+                    "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
+                    )
+        return
+
+    text = (
+        "<b>Benvenuto nel pannello admin del bot</b>"
+    )
+    bot.api.call("sendMessage", {
+        "chat_id":chat.id, "text":text, "parse_mode":"HTML", "reply_markup":
+            '{"inline_keyboard":[[{"text":"❓Aiuto admins", "callback_data":"adminhelp"}],'+
+            '[{"text":"🔨Bannati", "callback_data":"bans"}, {"text":"⏰Chiama il dev", "callback_data":"wakeup"}]'+
+        ']}'
+    })
+
+@bot.command("r")
+def reply(chat, message, args):
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    if len(args) < 2:
+        message.reply("<b>Errore di formato!</b>\nIl formato giusto è: <code>/r user_id risposta con Markdown</code>")
+        return
+
+    user_id = args[0]
+    text = ' '.join(args[1:]) + "\n\n✍️*Gli admins di IATA*"
+
+    try:
+        int(user_id)
+    except ValueError:
+        message.reply("L\'<b>ID utente</b> specificato ({0}) non è valido".format(str(user_id)))
+        return
+
+    bot.api.call("sendMessage", {
+        "chat_id":user_id, "text":text, "parse_mode":"Markdown", "reply_markup":
+            '{"inline_keyboard":[[{"text":"🗣Rispondi", "callback_data":"contact"}]]}'
+    })
+
 
 if __name__ == "__main__":
     bot.run()
