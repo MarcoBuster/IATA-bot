@@ -69,6 +69,12 @@ def start(chat, message, args):
     API.db.updateState(chat.id, "home", 0)
     conn.commit()
 
+@bot.command("help")
+def help(chat, message, args):
+    '''Need help? Nope!'''
+    chat.send("Ti sto rindirizzando al comando */start*...")
+    start(chat, message, args)
+
 def process_callback(bot, chains, update):
     '''Process callback'''
     Report.process(bot, chains, update)
