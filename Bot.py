@@ -15,6 +15,8 @@ IT: Bot sviluppato da @MarcoBuster (www.GitHub.com/MarcoBuster)
 from Callback import Report, Submit, Other, Contact
 import API
 
+import time
+
 import botogram.objects.base
 class CallbackQuery(botogram.objects.base.BaseObject):
     required = {
@@ -140,29 +142,31 @@ def report2(chat, message):
 
     if message.photo == None:
         reported_evidence = message.text
-        bot.chat(26170256).send(
-                                "#REPORT<b> UTENTE</b>\n"
+        bot.chat(-1001069073125 ).send(
+                                "<b>NUOVA SEGNALAZIONE UTENTE DA {4}</b> (#iatareport)\n"
                                 "<b>Info sul reportato</b>: {0}\n"
                                 "<b>Prove</b>: {1}\n"
                                 "<b>SEGNALATO DA</b>:\n"
                                 "<b>Nome</b>: {2}\n"
                                 "<b>Username</b>: @{3}\n"
-                                "<b>ID</b>: #da{4}".format(reported_info, reported_evidence, message.sender.name, str(message.sender.username), str(message.sender.id))
+                                "<b>ID</b>: {4}".format(reported_info, reported_evidence, message.sender.name, str(message.sender.username), str(message.sender.id))
                         )
         API.db.updateState(chat.id, "nullstate", 0)
 
     else:
         file_id = message.photo.file_id
-        caption = (
+        file_caption = message.caption
+        if file_caption == None:
+            file_caption = ""
+        caption = ( "{4}\n"
                     "Info sul reportato: {0}\n"
-                    "Segnalato da: {1} (@{2}, #da{3})"
-                    .format(str(reported_info), str(message.sender.name), str(message.sender.username), str(message.sender.id))
+                    "Segnalato da: {1} (@{2}, {3})"
+                    .format(str(reported_info), str(message.sender.name), str(message.sender.username), str(message.sender.id), file_caption)
                 )
 
         bot.api.call("sendPhoto", {
-        "chat_id": 26170256, "photo":file_id, "caption":caption
-        }
-        )
+        "chat_id": -1001069073125 , "photo":file_id, "caption":caption
+        })
         API.db.updateState(chat.id, "nullstate", 0)
 
     text = "👍<b>Grazie!</b>\nLa tua segnalazione è stata <b>inviata</b>, un team di <b>moderatori</b> la analizzerà presto\n<b>Cosa vuoi fare ora?</b>"
@@ -304,7 +308,7 @@ def submit4(chat, message):
         admins = res[3]
         description = res[4]
 
-    bot.chat(26170256).send("<b>RICHIESTA D\'</b>#ISCRIZIONE"
+    bot.chat(-1001069073125 ).send("<b>RICHIESTA DI ISCRIZIONE DA {5}</b> #iataiscrizione"
                             "\n\n<b>INFORMAZIONI SUL GRUPPO</b>"
                             "\n<b>Nome del gruppo</b>: {0}"
                             "\n<b>Link del gruppo</b>: {1}"
@@ -312,7 +316,7 @@ def submit4(chat, message):
                             "\n<b>Descrizione del gruppo</b>: {3}"
                             "\n\n<b>INFORMAZIONI DEL RICHIEDENTE</b>"
                             "\n<b>Nome</b>: {4}"
-                            "\n<b>ID</b>: #id{5}"
+                            "\n<b>ID</b>: {5}"
                             "\n<b>Username</b>: @{6}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username))
                     )
 
@@ -344,21 +348,58 @@ def contact1(chat, message):
 
     text = str(message.text)
 
-    bot.chat(26170256).send("#MESSAGGIO<b> IN ARRIVO</b>"
+    bot.chat(-1001069073125 ).send("<b>MESSAGGIO IN ARRIVO DA {2}</b> (#iatacontact, {2})"
                             "\n<b>Nome</b>: {0}"
-                            "\n<b>Username</b>: {1}"
-                            "\n<b>ID</b>: #id{2}"
-                            "\n<b>Testo</b>: {3}"
-                            "\n\n<i>Se il messaggio è offensivo lo puoi bannare facendo /ban {2}</i>"
-                            "\n<i>Puoi rispondere a questo messaggio facendo /r {2} RISPOSTA</i>".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
+                            "\n<b>Username</b>: @{1}"
+                            "\n<b>Testo</b>: {3}".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
                             , syntax="HTML"
 
     )
 
-    chat.send("Grazie! A breve un <b>admin IATA</b> ti risponderà")
+    text = "Grazie! A breve un <b>admin IATA</b> ti risponderà"
+    bot.api.call("sendMessage", {"chat_id": chat.id, "message_id": message.message_id, "text": text, "parse_mode": "HTML", "reply_markup":
+            '{"inline_keyboard": [[{"text":"🔙Torna indietro", "callback_data":"cancel"}]]}'
+    })
 
     API.db.updateState(chat.id, "nullstate", 0)
     conn.commit()
+
+@bot.process_message
+def fast_reply(chat, message):
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    if message.sender.id not in IATA_admins:
+        return
+
+    if message.reply_to_message == None or message.reply_to_message.text == None:
+        return
+
+    if message.reply_to_message.text.find("MESSAGGIO IN ARRIVO DA") < 0 and message.reply_to_message.text.find("RICHIESTA DI ISCRIZIONE DA") and message.reply_to_message.text.find("NUOVA SEGNALAZIONE UTENTE DA"):
+        return
+
+    if message.text.find("+") < 0:
+        return
+
+    user_id = message.reply_to_message.text.split(" ")[4]
+    text = message.text.replace("+", "", 1) + "\n\n✍️*Gli admins di IATA*"
+
+    try:
+        bot.api.call("sendMessage", {
+            "chat_id":user_id, "text":text, "parse_mode":"Markdown", "reply_markup":
+                '{"inline_keyboard":[[{"text":"🗣Rispondi", "callback_data":"contact"}]]}'
+        })
+        message.reply("<b>Messaggio inviato</b> senza errori")
+    except Exception as e:
+        message.reply("<b>ERRORE CRITICO</b> - Impossibile inviare il messaggio"
+                "\n<i>Avvisare @MarcoBuster in caso di errori strani</i>"
+                "\n\n=============="
+                "\n<b>Timestamp</b>: {0}"
+                "\n<b>Action</b>: sendMessage"
+                "\n<b>chat_id</b>: {1}"
+                "\n<b>text</b>: {2}"
+                "\n<b>parse_mode</b>: \"Markdown\""
+                "\n<b>reply_markup</b>: inline_keyboard"
+                "\n<b>ERROR</b>: {3}".format(str(time.time()), str(user_id), str(text), str(e))
+        , syntax="HTML")
 
 @bot.command("ban")
 def ban(chat, message, args):
@@ -482,11 +523,24 @@ def reply(chat, message, args):
         message.reply("L\'<b>ID utente</b> specificato ({0}) non è valido".format(str(user_id)))
         return
 
-    bot.api.call("sendMessage", {
-        "chat_id":user_id, "text":text, "parse_mode":"Markdown", "reply_markup":
-            '{"inline_keyboard":[[{"text":"🗣Rispondi", "callback_data":"contact"}]]}'
-    })
-
+    try:
+        bot.api.call("sendMessage", {
+            "chat_id":user_id, "text":text, "parse_mode":"Markdown", "reply_markup":
+                '{"inline_keyboard":[[{"text":"🗣Rispondi", "callback_data":"contact"}]]}'
+        })
+        message.reply("<b>Messaggio inviato</b> senza errori")
+    except Exception as e:
+        message.reply("<b>ERRORE CRITICO</b> - Impossibile inviare il messaggio"
+                "\n<i>Avvisare in caso di @MarcoBuster errori non comuni</i>"
+                "\n\n=============="
+                "\n<b>Timestamp</b>: {0}"
+                "\n<b>Action</b>: sendMessage"
+                "\n<b>chat_id</b>: {1}"
+                "\n<b>text</b>: {2}"
+                "\n<b>parse_mode</b>: \"Markdown\""
+                "\n<b>reply_markup</b>: inline_keyboard"
+                "\n<b>ERROR</b>: {3}".format(str(time.time()), str(user_id), str(text), str(e))
+        , syntax="HTML")
 
 if __name__ == "__main__":
     bot.run()
