@@ -142,15 +142,14 @@ def report2(chat, message):
 
     if message.photo == None:
         reported_evidence = message.text
-        bot.chat(-1001069073125 ).send(
-                                "<b>NUOVA SEGNALAZIONE UTENTE DA {4}</b> (#iatareport)\n"
-                                "<b>Info sul reportato</b>: {0}\n"
-                                "<b>Prove</b>: {1}\n"
-                                "<b>SEGNALATO DA</b>:\n"
-                                "<b>Nome</b>: {2}\n"
-                                "<b>Username</b>: @{3}\n"
-                                "<b>ID</b>: {4}".format(reported_info, reported_evidence, message.sender.name, str(message.sender.username), str(message.sender.id))
-                        )
+        bot.chat(-162024136).send(
+            "<b>REPORT</b> {4}\n"
+            "#id{4} #iatareport\n"
+            "{2} 🔸 @{3} 🔸 {4}\n\n"
+            "<b>SEGNALATO</b>: {0}\n"
+            "<b>MOTIVAZIONE</b>: {1}"
+                .format(reported_info, reported_evidence, message.sender.name, str(message.sender.username),str(message.sender.id))
+        )
         API.db.updateState(chat.id, "nullstate", 0)
 
     else:
@@ -158,14 +157,17 @@ def report2(chat, message):
         file_caption = message.caption
         if file_caption == None:
             file_caption = ""
-        caption = ( "{4}\n"
-                    "Info sul reportato: {0}\n"
-                    "Segnalato da: {1} (@{2}, {3})"
-                    .format(str(reported_info), str(message.sender.name), str(message.sender.username), str(message.sender.id), file_caption)
-                )
+        caption = ("{4}\n"
+                   "<b>REPORT</b> {3}\n"
+                   "#id{3} #iatareport\n\n"
+                   "{1} 🔸 @{2} 🔸 {3}"
+                   "<b>SEGNALATO:</b> {0}"
+                   .format(str(reported_info), str(message.sender.name), str(message.sender.username),
+                           str(message.sender.id), file_caption)
+                   )
 
         bot.api.call("sendPhoto", {
-        "chat_id": -1001069073125 , "photo":file_id, "caption":caption
+        "chat_id": -162024136 , "photo":file_id, "caption":caption
         })
         API.db.updateState(chat.id, "nullstate", 0)
 
@@ -281,6 +283,7 @@ def submit3(chat, message):
 @bot.process_message
 def submit4(chat, message):
     '''Submit your supergroup - Admins?'''
+    global name, name, link, admins, admins
     state, temp = API.db.getState(chat.id)
     conn.commit()
     if state != "submit4":
@@ -308,16 +311,12 @@ def submit4(chat, message):
         admins = res[3]
         description = res[4]
 
-    bot.chat(-1001069073125 ).send("<b>RICHIESTA DI ISCRIZIONE DA {5}</b> #iataiscrizione"
-                            "\n\n<b>INFORMAZIONI SUL GRUPPO</b>"
-                            "\n<b>Nome del gruppo</b>: {0}"
-                            "\n<b>Link del gruppo</b>: {1}"
-                            "\n<b>Lista degli admins del gruppo</b>: {2}"
-                            "\n<b>Descrizione del gruppo</b>: {3}"
-                            "\n\n<b>INFORMAZIONI DEL RICHIEDENTE</b>"
-                            "\n<b>Nome</b>: {4}"
-                            "\n<b>ID</b>: {5}"
-                            "\n<b>Username</b>: @{6}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username))
+    bot.chat(-162024136 ).send("<b>ISCRIZIONE</b> {5}"
+                            "\n#id{5} #iataiscrizione"
+                            "\n{4} 🔸 {5} 🔸 {6}\n"
+                            "\n<b>Nome gruppo</b>: {0}"
+                            "\n<b>Admin aggiuntivi</b>: {2}"
+                            "\n<b>Descrizione/b>: {3}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username))
                     )
 
     text = (
@@ -348,11 +347,10 @@ def contact1(chat, message):
 
     text = str(message.text)
 
-    bot.chat(-1001069073125 ).send("<b>MESSAGGIO IN ARRIVO DA {2}</b> (#iatacontact, {2})"
-                            "\n<b>Nome</b>: {0}"
-                            "\n<b>Username</b>: @{1}"
-                            "\n<b>Testo</b>: {3}".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
-                            , syntax="HTML"
+    bot.chat(-162024136 ).send("<b>CONTATTO</b> {2)"
+                            "\n{0} 🔸 {1} 🔸 {2}"
+                            "\n<b>Messaggio</b>: {3}".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
+                            ,syntax="HTML"
 
     )
 
@@ -366,20 +364,20 @@ def contact1(chat, message):
 
 @bot.process_message
 def fast_reply(chat, message):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
     if message.sender.id not in IATA_admins:
         return
 
     if message.reply_to_message == None or message.reply_to_message.text == None:
         return
 
-    if message.reply_to_message.text.find("MESSAGGIO IN ARRIVO DA") < 0 and message.reply_to_message.text.find("RICHIESTA DI ISCRIZIONE DA") and message.reply_to_message.text.find("NUOVA SEGNALAZIONE UTENTE DA"):
+    if message.reply_to_message.text.find("CONTATTO") < 0 and message.reply_to_message.text.find("ISCRIZIONE") and message.reply_to_message.text.find("REPORT"):
         return
 
     if message.text.find("+") < 0:
         return
 
-    user_id = message.reply_to_message.text.split(" ")[4]
+    user_id = message.reply_to_message.text.split(" ")[1]
     text = message.text.replace("+", "", 1) + "\n\n✍️*Gli admins di IATA*"
 
     try:
@@ -403,7 +401,7 @@ def fast_reply(chat, message):
 
 @bot.command("ban")
 def ban(chat, message, args):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
     if message.sender.id not in IATA_admins:
         message.reply("<b>Non puoi bannare gente dal bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
@@ -448,7 +446,7 @@ def ban(chat, message, args):
 
 @bot.command("unban")
 def unban(chat, message, args):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
     if message.sender.id not in IATA_admins:
         message.reply("<b>Non puoi sbannare gente dal bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
@@ -490,7 +488,7 @@ def unban(chat, message, args):
 
 @bot.command("admin")
 def admin(chat, message):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
     if message.sender.id not in IATA_admins:
         message.reply("<b>Non puoi accedere a questo comando del bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
@@ -509,7 +507,7 @@ def admin(chat, message):
 
 @bot.command("r")
 def reply(chat, message, args):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108]
+    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
     if len(args) < 2:
         message.reply("<b>Errore di formato!</b>\nIl formato giusto è: <code>/r user_id risposta con Markdown</code>")
         return
