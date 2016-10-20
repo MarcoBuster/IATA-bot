@@ -159,10 +159,10 @@ def report2(chat, message):
         if file_caption == None:
             file_caption = ""
         caption = ("{4}\n"
-                   "<b>REPORT</b> {3}\n"
+                   "REPORT {3}\n"
                    "#id{3} #iatareport\n\n"
                    "{1} 🔸 @{2} 🔸 {3}"
-                   "<b>SEGNALATO:</b> {0}"
+                   "SEGNALATO: {0}"
                    .format(str(reported_info), str(message.sender.name), str(message.sender.username),
                            str(message.sender.id), file_caption)
                    )
@@ -398,18 +398,18 @@ def fast_reply(chat, message):
                 "\n<b>ERROR</b>: {3}".format(str(time.time()), str(user_id), str(text), str(e))
         , syntax="HTML")
 
-@bot.command("ban")
-def ban(chat, message, args):
+@bot.command("blocca")
+def blocca(chat, message, args):
     if message.sender.id not in ADMINS:
-        message.reply("<b>Non puoi bannare gente dal bot, non hai i permessi.</b>"
+        message.reply("<b>Non puoi bloccare gente dal bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
                     )
         return
 
     if len(args) == 0:
         message.reply(
-                    "\nPer <b>bannare</b> utenti dal bot devi sapere il loro <b>id utente</b>, poi fare: <code>/ban IDUTENTE</code>."
-                    "\nEsempio: <code>/ban 12345678 MOTIVO</code>"
+                    "\nPer <b>bloccare</b> utenti dal bot devi sapere il loro <b>id utente</b>, poi fare: <code>/blocca IDUTENTE</code>."
+                    "\nEsempio: <code>/blocca 12345678 MOTIVO</code>"
                     )
         return
 
@@ -430,7 +430,7 @@ def ban(chat, message, args):
     conn.commit()
 
     try:
-        bot.chat(user_id).send("Sei stato <b>bannato</b> da questo bot da un <b>admin IATA</b>\n"
+        bot.chat(user_id).send("Sei stato <b>bloccato</b> da questo bot da un <b>admin IATA</b>\n"
         "<b>ATTENZIONE!</b> Questo non significa che sei stato messo in <a href=\"telegram.me/IATABlacklist\">Blacklist</a>, ma solo che non potrai più usare questo bot\n"
         "<b>Motivo</b>: {0}".format(motivazione)
         , preview=False
@@ -438,22 +438,22 @@ def ban(chat, message, args):
     except Exception as e:
         pass
 
-    message.reply("Utente {0} aggiunto nei database <b>bannati</b> con motivazione {1}"
-                "\nSe hai sbagliato puoi sbannarlo facendo <code>/unban {0}</code>".format(str(user_id), motivazione)
+    message.reply("Utente {0} aggiunto nei database <b>bloccati</b> con motivazione {1}"
+                "\nSe hai sbagliato puoi sbloccarlo facendo <code>/sblocca {0}</code>".format(str(user_id), motivazione)
             )
 
-@bot.command("unban")
-def unban(chat, message, args):
+@bot.command("sblocca")
+def sblocca(chat, message, args):
     if message.sender.id not in ADMINS:
-        message.reply("<b>Non puoi sbannare gente dal bot, non hai i permessi.</b>"
+        message.reply("<b>Non puoi sbloccare gente dal bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
                     )
         return
 
     if len(args) == 0:
         message.reply(
-                    "\nPer <b>sbannare</b> utenti dal bot devi sapere il loro <b>id utente</b>, poi fare: <code>/ban IDUTENTE</code>."
-                    "\nEsempio: <code>/unban 12345678 MOTIVO</code>"
+                    "\nPer <b>sblocare</b> utenti dal bot devi sapere il loro <b>id utente</b>, poi fare: <code>/sblocca IDUTENTE</code>."
+                    "\nEsempio: <code>/sblocca 12345678 MOTIVO</code>"
                     )
         return
 
@@ -473,14 +473,14 @@ def unban(chat, message, args):
     conn.commit()
 
     try:
-        bot.chat(user_id).send("Sei stato <b>sbannato</b> da questo bot da un <b>admin IATA</b>\n"
+        bot.chat(user_id).send("Sei stato <b>sbloccnato</b> da questo bot da un <b>admin IATA</b>\n"
         "<b>Motivo</b>: {0}".format(motivazione)
         )
     except Exception as e:
         pass
 
-    message.reply("Utente {0} rimosso nei database <b>bannati</b> con motivazione {1}"
-                "\nSe hai sbagliato puoi ri-bannarlo facendo <code>/ban {0}</code>".format(str(user_id), motivazione)
+    message.reply("Utente {0} rimosso nei database <b>bloccati</b> con motivazione {1}"
+                "\nSe hai sbagliato puoi ri-bloccarlo facendo <code>/blocca {0}</code>".format(str(user_id), motivazione)
             )
 
 @bot.command("admin")
@@ -497,7 +497,7 @@ def admin(chat, message):
     bot.api.call("sendMessage", {
         "chat_id":chat.id, "text":text, "parse_mode":"HTML", "reply_markup":
             '{"inline_keyboard":[[{"text":"❓Aiuto admins", "callback_data":"adminhelp"}],'+
-            '[{"text":"🔨Bannati", "callback_data":"bans"}, {"text":"⏰Chiama il dev", "callback_data":"wakeup"}]'+
+            '[{"text":"🔨Bloccati", "callback_data":"bans"}, {"text":"⏰Chiama il dev", "callback_data":"wakeup"}]'+
         ']}'
     })
 
