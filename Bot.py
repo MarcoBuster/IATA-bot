@@ -12,6 +12,7 @@ IT: Bot sviluppato da @MarcoBuster (www.GitHub.com/MarcoBuster)
 =====================
 '''
 
+from CONFIG import TOKEN, ADMINS, ADMIN_GROUP
 from Callback import Report, Submit, Other, Contact
 import API
 
@@ -34,7 +35,7 @@ class CallbackQuery(botogram.objects.base.BaseObject):
 botogram.Update.optional["callback_query"] = CallbackQuery
 
 import botogram
-bot = botogram.create("TOKEN")
+bot = botogram.create(TOKEN)
 
 import sqlite3
 conn = sqlite3.connect('IATA-bot.db')
@@ -142,7 +143,7 @@ def report2(chat, message):
 
     if message.photo == None:
         reported_evidence = message.text
-        bot.chat(-162024136).send(
+        bot.chat(ADMIN_GROUP).send(
             "<b>REPORT</b> {4}\n"
             "#id{4} #iatareport\n"
             "{2} 🔸 @{3} 🔸 {4}\n\n"
@@ -167,7 +168,7 @@ def report2(chat, message):
                    )
 
         bot.api.call("sendPhoto", {
-        "chat_id": -162024136 , "photo":file_id, "caption":caption
+        "chat_id": ADMIN_GROUP , "photo":file_id, "caption":caption
         })
         API.db.updateState(chat.id, "nullstate", 0)
 
@@ -283,7 +284,6 @@ def submit3(chat, message):
 @bot.process_message
 def submit4(chat, message):
     '''Submit your supergroup - Admins?'''
-    global name, name, link, admins, admins
     state, temp = API.db.getState(chat.id)
     conn.commit()
     if state != "submit4":
@@ -311,12 +311,13 @@ def submit4(chat, message):
         admins = res[3]
         description = res[4]
 
-    bot.chat(-162024136 ).send("<b>ISCRIZIONE</b> {5}"
+    bot.chat(ADMIN_GROUP).send("<b>ISCRIZIONE</b> {5}"
                             "\n#id{5} #iataiscrizione"
                             "\n{4} 🔸 {5} 🔸 {6}\n"
                             "\n<b>Nome gruppo</b>: {0}"
+                            "\n<b>Link gruppo</b>: {1}"
                             "\n<b>Admin aggiuntivi</b>: {2}"
-                            "\n<b>Descrizione/b>: {3}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username))
+                            "\n<b>Descrizione</b>: {3}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username))
                     )
 
     text = (
@@ -347,11 +348,10 @@ def contact1(chat, message):
 
     text = str(message.text)
 
-    bot.chat(-162024136 ).send("<b>CONTATTO</b> {2)"
+    bot.chat(ADMIN_GROUP).send("<b>CONTATTO</b> {2}"
                             "\n{0} 🔸 {1} 🔸 {2}"
                             "\n<b>Messaggio</b>: {3}".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
                             ,syntax="HTML"
-
     )
 
     text = "Grazie! A breve un <b>admin IATA</b> ti risponderà"
@@ -364,8 +364,7 @@ def contact1(chat, message):
 
 @bot.process_message
 def fast_reply(chat, message):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
-    if message.sender.id not in IATA_admins:
+    if message.sender.id not in ADMINS:
         return
 
     if message.reply_to_message == None or message.reply_to_message.text == None:
@@ -401,8 +400,7 @@ def fast_reply(chat, message):
 
 @bot.command("ban")
 def ban(chat, message, args):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
-    if message.sender.id not in IATA_admins:
+    if message.sender.id not in ADMINS:
         message.reply("<b>Non puoi bannare gente dal bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
                     )
@@ -446,8 +444,7 @@ def ban(chat, message, args):
 
 @bot.command("unban")
 def unban(chat, message, args):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
-    if message.sender.id not in IATA_admins:
+    if message.sender.id not in ADMINS:
         message.reply("<b>Non puoi sbannare gente dal bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
                     )
@@ -488,8 +485,7 @@ def unban(chat, message, args):
 
 @bot.command("admin")
 def admin(chat, message):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
-    if message.sender.id not in IATA_admins:
+    if message.sender.id not in ADMINS:
         message.reply("<b>Non puoi accedere a questo comando del bot, non hai i permessi.</b>"
                     "\nSe credi che questo sia un <b>errore</b> o sei un <b>nuovo admin IATA</b>, contatta @MarcoBuster o @lollofra"
                     )
@@ -507,7 +503,9 @@ def admin(chat, message):
 
 @bot.command("r")
 def reply(chat, message, args):
-    IATA_admins = [26170256, 195973896, 41600129, 39156973, 187120083, 127354414, 138388750, 40955937, 68797644, 36536108, 68972553]
+    if message.sender.id not in ADMINS:
+        return
+
     if len(args) < 2:
         message.reply("<b>Errore di formato!</b>\nIl formato giusto è: <code>/r user_id risposta con Markdown</code>")
         return
