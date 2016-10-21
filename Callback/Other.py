@@ -74,7 +74,7 @@ def process(bot, chains, update):
             "\nEsempio: <code>/r USER_ID Per avere altre informazioni su IATA vai sul sito www.iata.ovh</code>"
             "\nLa risposta <b>supporta il Markdown</b>"
             "\n\n<b>Codice sorgente</b>"
-            "\nIl codice sorgente è disponibile nella REPO di IATA-dev: <a href=\"www.GitHub.com/IATA-dev/IATA-bot\">Link alla repo</a>"
+            "\nIl codice sorgente è disponibile nella REPO di IATAdev: <a href=\"www.GitHub.com/IATAdev/IATA-bot\">Link alla repo</a>"
             "\n\n<b>Sviluppatore e altro</b>"
             "\nIl bot è stato sviluppato da @MarcoBuster, è scritto in <b>Python 3.5</b> ed utilizza il framework <b>botogram (modificato)</b>"
         )
