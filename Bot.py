@@ -146,10 +146,10 @@ def report2(chat, message):
         bot.chat(ADMIN_GROUP).send(
             "<b>REPORT</b> {4}\n"
             "#id{4} #iatareport\n"
-            "{2} 🔸 @{3} 🔸 {4}\n\n"
+            "{2} 🔸 @{3} 🔸 #{4}\n\n"
             "<b>SEGNALATO</b>: {0}\n"
             "<b>MOTIVAZIONE</b>: {1}"
-                .format(reported_info, reported_evidence, message.sender.name, str(message.sender.username),str(message.sender.id))
+                .format(reported_info, reported_evidence, message.sender.name, str(message.sender.username),str(message.sender.id)), syntax="HTML"
         )
         API.db.updateState(chat.id, "nullstate", 0)
 
@@ -161,7 +161,7 @@ def report2(chat, message):
         caption = ("{4}\n"
                    "REPORT {3}\n"
                    "#id{3} #iatareport\n\n"
-                   "{1} 🔸 @{2} 🔸 {3}"
+                   "{1} 🔸 @{2} 🔸 #{3}"
                    "SEGNALATO: {0}"
                    .format(str(reported_info), str(message.sender.name), str(message.sender.username),
                            str(message.sender.id), file_caption)
@@ -313,11 +313,11 @@ def submit4(chat, message):
 
     bot.chat(ADMIN_GROUP).send("<b>ISCRIZIONE</b> {5}"
                             "\n#id{5} #iataiscrizione"
-                            "\n{4} 🔸 {5} 🔸 {6}\n"
+                            "\n{4} 🔸 @{6} 🔸 #{5}\n"
                             "\n<b>Nome gruppo</b>: {0}"
                             "\n<b>Link gruppo</b>: {1}"
                             "\n<b>Admin aggiuntivi</b>: {2}"
-                            "\n<b>Descrizione</b>: {3}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username))
+                            "\n<b>Descrizione</b>: {3}".format(name, link, admins, description, message.sender.name, str(message.sender.id), str(message.sender.username)),syntax="HTML"
                     )
 
     text = (
