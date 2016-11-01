@@ -4,7 +4,7 @@ Questo è un bot di supporto all'*[Italian Telegram Admin Alliance](www.iata.ovh
 Permette di *inviare segnalazioni di utenti molesti*, *proporre il proprio gruppo per l'iscrizione in IATA* e *contattare il team di IATA*, tutto questo da un **bot per Telegram**
 
 ### Crediti
-Il bot è programmato in **Python** da [MarcoBuster](www.github.com/MarcoBuster) utilizzando il framework [botogram](www.github.com/botogram). 
+Il bot è programmato in **Python** da [MarcoBuster](https://www.github.com/MarcoBuster) utilizzando il framework [botogram](https://www.github.com/botogram). 
 
 ### Installazione
 Per installare questo bot sulla propria **VPS Linux**, bisogna:
