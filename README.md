@@ -10,11 +10,12 @@ Il bot è programmato in **Python** da [MarcoBuster](www.github.com/MarcoBuster)
 Per installare questo bot sulla propria **VPS Linux**, bisogna:
 
     $ python3 -m pip install botogram
-    $ git clone www.github.com/IATA-dev/IATA-bot.git && cd IATA-bot
-    $ nano "Bot.py"
-> Nota: Bisogna modificare il file "Bot.py" sostituendo:
+    $ git clone https://www.github.com/IATA-dev/IATA-bot.git && cd IATA-bot
+    $ nano CONFIG.py
+> Nota: Bisogna modificare il file "CONFIG.py" inserendo:
 > Il TOKEN del bot,
-> la variabile IATA_admins con gli ID degli admins del bot,
-> l'ID del gruppo personale IATA.
+> ID degli admins del bot nell'array ADMINS,
+> l'ID del gruppo admin nella variabile ADMIN_GROUP.
+> Facoltativo: Modificare a piacimento i messaggi inviati all'utente
 
-    $ python3 "Bot.py"
+    $ python3 Bot.py
