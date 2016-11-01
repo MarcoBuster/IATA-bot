@@ -349,7 +349,7 @@ def contact1(chat, message):
     text = str(message.text)
 
     bot.chat(ADMIN_GROUP).send("<b>CONTATTO</b> {2}"
-                            "\n{0} 🔸 @{1} 🔸 {2}"
+                            "\n{0} 🔸 @{1} 🔸 #{2}"
                             "\n<b>Messaggio</b>: {3}".format(message.sender.name, str(message.sender.username), str(message.sender.id), text)
                             ,syntax="HTML"
     )
