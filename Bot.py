@@ -161,7 +161,7 @@ def report2(chat, message):
         caption = ("{4}\n"
                    "REPORT {3}\n"
                    "#id{3} #iatareport\n\n"
-                   "{1} 🔸 @{2} 🔸 #{3}"
+                   "{1} 🔸 @{2} 🔸 #{3}\n"
                    "SEGNALATO: {0}"
                    .format(str(reported_info), str(message.sender.name), str(message.sender.username),
                            str(message.sender.id), file_caption)
